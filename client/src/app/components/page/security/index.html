@@ -1,0 +1,119 @@
+<main class="min-h-screen bg-space-975 px-6 py-8 text-slate-100">
+  <div class="mx-auto max-w-3xl">
+    <header class="mb-8 flex items-center justify-between gap-6">
+      <div>
+        <p class="
+            text-xs uppercase tracking-[0.3em]
+            text-eleanor-300/70
+          ">
+          Eleanor / Security
+        </p>
+
+        <h1 class="mt-2 text-3xl font-semibold">
+          Credential security
+        </h1>
+      </div>
+
+      <a routerLink="/settings" class="eleanor-button">
+        Back
+      </a>
+    </header>
+
+    <section class="eleanor-panel p-6">
+      <div class="
+          flex flex-wrap items-center
+          justify-between gap-4
+        ">
+        <div>
+          <h2 class="font-semibold">
+            Passkeys
+          </h2>
+
+          <p class="mt-1 text-sm text-slate-500">
+            {{ passkeys.count() }}
+            registered authenticator(s)
+          </p>
+        </div>
+
+        <button type="button" class="eleanor-button" [disabled]="busy()" (click)="addPasskey()">
+          Add passkey
+        </button>
+      </div>
+    </section>
+
+    <section class="eleanor-panel mt-4 p-6">
+      <h2 class="font-semibold">
+        AI provider credential
+      </h2>
+
+      <p class="mt-2 text-sm leading-6 text-slate-500">
+        Viewing metadata, replacing the key, and deleting the
+        credential require a fresh passkey verification.
+      </p>
+
+      <div class="mt-5 flex flex-wrap gap-3">
+        <button type="button" class="eleanor-button" [disabled]="busy() || !credentials.configured()"
+          (click)="viewDetails()">
+          View metadata
+        </button>
+
+        <button type="button" class="eleanor-button" [disabled]="busy() || !credentials.configured()"
+          (click)="removeCredential()">
+          Remove credential
+        </button>
+      </div>
+
+      @if (details()) {
+      <div class="
+            mt-5 rounded-xl border
+            border-slate-800 bg-space-950/50 p-4
+          ">
+        <p class="text-sm text-slate-300">
+          Provider: {{ details()!.provider }}
+        </p>
+
+        <p class="mt-1 font-mono text-sm text-slate-500">
+          Key: {{ details()!.maskedApiKey }}
+        </p>
+
+        <p class="mt-1 text-xs text-slate-600">
+          Updated: {{ details()!.updatedAt }}
+        </p>
+      </div>
+      }
+
+      <form class="
+          mt-6 grid gap-3
+          sm:grid-cols-[10rem_1fr_auto]
+        " (submit)="replaceCredential($event)">
+        <select class="eleanor-input" [value]="provider()" (change)="provider.set(readProvider($event))">
+          <option value="openai">
+            OpenAI
+          </option>
+        </select>
+
+        <input class="eleanor-input font-mono" type="password" autocomplete="off" spellcheck="false"
+          placeholder="New API key" [value]="newApiKey()" (input)="newApiKey.set(readInput($event))">
+
+        <button type="submit" class="eleanor-button" [disabled]="
+            busy() ||
+            newApiKey().trim().length < 20
+          ">
+          Replace
+        </button>
+      </form>
+
+      @if (message()) {
+      <p class="mt-4 text-sm text-eleanor-200">
+        {{ message() }}
+      </p>
+      }
+
+      @if (error()) {
+      <p class="mt-4 text-sm text-red-300">
+        {{ error() }}
+      </p>
+      }
+    </section>
+  </div>
+</main>

@@ -1,0 +1,83 @@
+{
+  "name": "@eleanor/client",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "build:install": "npm install --legacy-peer-deps",
+    "local": "ng serve --configuration local --port 4141",
+    "build:local": "ng build --configuration local",
+    "watch": "ng build --watch --configuration local",
+    "build:prod": "ng build --configuration production",
+    "ngo:service": "node scripts/gen.mjs --service",
+    "ngo:guard": "node scripts/gen.mjs --guard",
+    "ngo:pipe": "node scripts/gen.mjs --pipe",
+    "ngo:comp": "node scripts/gen.mjs",
+    "ngo": "node scripts/gen.mjs",
+    "lint": "ng lint",
+    "test": "npm run test:unit",
+    "test:unit": "ng test --watch=false",
+    "test:coverage": "ng test --watch=false --coverage",
+    "electron:local": "concurrently \"npm run local\" \"wait-on http://localhost:4141 && electron .\"",
+    "electron:build": "node scripts/build-desktop.mjs",
+    "electron:package": "node scripts/build-desktop.mjs --package",
+    "electron:dir": "node scripts/build-desktop.mjs --dir"
+  },
+  "prettier": {
+    "printWidth": 100,
+    "singleQuote": true,
+    "overrides": [
+      {
+        "files": "*.html",
+        "options": {
+          "parser": "angular"
+        }
+      }
+    ]
+  },
+  "private": true,
+  "dependencies": {
+    "@angular/common": "^20.3.0",
+    "@angular/compiler": "^20.3.0",
+    "@angular/core": "^20.3.0",
+    "@angular/forms": "^20.3.0",
+    "@angular/platform-browser": "^20.3.0",
+    "@angular/router": "^20.3.0",
+    "@simplewebauthn/browser": "^14.0.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-is": "^19.2.8",
+    "recharts": "^3.10.1",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^20.3.37",
+    "@angular/cli": "^20.3.37",
+    "@angular/compiler-cli": "^20.3.0",
+    "@eslint/js": "^10.0.1",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/jasmine": "~5.1.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "angular-eslint": "^22.1.0",
+    "concurrently": "^9.2.4",
+    "electron": "^44.9.2",
+    "electron-builder": "^26.15.3",
+    "eslint": "^10.8.1",
+    "eslint-plugin-playwright": "^2.11.0",
+    "jasmine-core": "~5.9.0",
+    "karma": "~6.4.0",
+    "karma-chrome-launcher": "~3.2.0",
+    "karma-coverage": "~2.2.0",
+    "karma-jasmine": "~5.1.0",
+    "karma-jasmine-html-reporter": "~2.1.0",
+    "postcss": "^8.5.26",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~5.9.2",
+    "typescript-eslint": "^8.67.0",
+    "vitest": "^4.1.10",
+    "wait-on": "^8.0.5"
+  }
+}

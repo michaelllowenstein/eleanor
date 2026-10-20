@@ -1,0 +1,17 @@
+{
+  "name": "eleanor",
+  "version": "0.7.0",
+  "private": true,
+  "workspaces": ["client", "api"],
+  "scripts": {
+    "local": "concurrently -n api,client \"npm run local -w @eleanor/api\" \"npm run local -w @eleanor/client\"",
+    "build": "npm run build -w @eleanor/api && npm run build -w @eleanor/client",
+    "test": "npm run test -w @eleanor/api && npm run test -w @eleanor/client",
+    "test:e2e": "playwright test",
+    "benchmark": "node scripts/benchmark.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "concurrently": "^9.2.0"
+  }
+}

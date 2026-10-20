@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens. Every colour utility used in templates (bg-space-975,
+ * text-eleanor-200, ...) must be declared here or Tailwind will not emit it.
+ */
+@theme {
+  --color-eleanor-50: #effaff;
+  --color-eleanor-100: #dff5ff;
+  --color-eleanor-200: #b8ecff;
+  --color-eleanor-300: #7ddcff;
+  --color-eleanor-400: #38c4ff;
+  --color-eleanor-500: #09a8ea;
+  --color-eleanor-700: #036d9f;
+  --color-space-900: #07111f;
+  --color-space-950: #020617;
+  --color-space-975: #01040e;
+}

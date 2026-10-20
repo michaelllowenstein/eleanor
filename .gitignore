@@ -1,0 +1,103 @@
+# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
+
+# Compiled output
+/dist
+/tmp
+/out-tsc
+/bazel-out
+
+# Node
+/node_modules
+npm-debug.log
+yarn-error.log
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
+
+# Miscellaneous
+/.angular/cache
+.sass-cache/
+/connect.lock
+/coverage
+/libpeerconnection.log
+testem.log
+/typings
+__screenshots__/
+
+# System files
+.DS_Store
+Thumbs.db
+
+.env
+.env.example
+api/.env
+api/.env.example
+client/node_modules
+api/node_modules
+client/dist
+api/dist
+
+node_modules/
+node_modules/.bin/
+dist/
+.angular/
+coverage/
+playwright-report/
+test-results/
+.env
+.env.*
+!.env.example
+.DS_Store
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+out-tsc/
+.angular/
+coverage/
+playwright-report/
+test-results/
+release/
+
+# Environment — only the documented templates are committed
+.env
+.env.*
+!.env.example
+
+# Key material must never be committed (see docs/SECURITY.md)
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.csr
+cert/
+certs/
+
+# Editors / OS
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/
+.DS_Store
+Thumbs.db
+*.log

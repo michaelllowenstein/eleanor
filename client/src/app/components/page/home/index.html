@@ -1,0 +1,129 @@
+<main class="
+        relative grid min-h-screen place-items-center
+        overflow-hidden bg-space-950 px-6 text-white
+      ">
+    <div class="
+          pointer-events-none absolute inset-0
+          bg-[radial-gradient(circle_at_center,
+          rgba(9,168,234,.14),transparent_48%)]
+        "></div>
+
+    <nav class="
+          absolute left-6 right-6 top-6 z-20
+          flex items-center justify-between
+        ">
+        <a routerLink="/assistant" class="
+            text-sm font-semibold
+            tracking-[0.25em]
+            text-eleanor-100
+          ">
+            ELEANOR
+        </a>
+
+        <a routerLink="/settings" class="
+            rounded-full border
+            border-slate-700
+            bg-slate-900/50
+            px-4 py-2
+            text-sm text-slate-300
+            transition
+            hover:border-eleanor-400/40
+            hover:text-white
+          ">
+            Settings
+        </a>
+    </nav>
+
+    <section class="
+          relative z-10 flex w-full max-w-2xl
+          flex-col items-center gap-9 text-center
+        ">
+        <header>
+            <p class="
+              mb-2 text-xs uppercase
+              tracking-[0.35em]
+              text-eleanor-300/70
+            ">
+                Realtime Intelligence
+            </p>
+
+            <h1 class="
+              text-3xl font-semibold
+              tracking-[0.2em]
+            ">
+                ELEANOR
+            </h1>
+        </header>
+
+        <app-voice-orb-island
+          [state]="voice.state()"
+          [inputLevel]="voice.inputLevel()"
+          [outputLevel]="voice.outputLevel()"
+        />
+
+        <section aria-live="polite" class="min-h-20">
+            <p class="text-xl font-medium">
+                {{ stateLabel() }}
+            </p>
+
+            <p class="
+              mt-2 text-sm text-slate-400
+            ">
+                {{ voice.message() }}
+            </p>
+
+            @if (voice.settingsPending()) {
+            <p class="
+                mt-2 text-xs text-eleanor-300
+              ">
+                Settings will apply after
+                the current response.
+            </p>
+            }
+        </section>
+
+        <div class="flex gap-3">
+            @if (!voice.connected()) {
+            <button type="button" class="
+                rounded-full border
+                border-eleanor-300/40
+                bg-eleanor-500/10
+                px-7 py-3
+                text-sm font-medium
+                text-eleanor-100
+                transition
+                hover:bg-eleanor-500/20
+                disabled:cursor-not-allowed
+                disabled:opacity-50
+              " [disabled]="
+                voice.state() === 'connecting'
+              " (click)="start()">
+                Activate
+            </button>
+            } @else {
+            <button type="button" class="
+                rounded-full border
+                border-slate-700
+                bg-slate-900/60
+                px-7 py-3
+                text-sm text-slate-300
+                transition hover:bg-slate-800
+              " (click)="stop()">
+                Disconnect
+            </button>
+            }
+
+            <a routerLink="/settings" class="
+              rounded-full border
+              border-slate-700
+              px-7 py-3
+              text-sm text-slate-400
+              transition
+              hover:border-eleanor-400/30
+              hover:text-white
+            ">
+                Customize
+            </a>
+        </div>
+    </section>
+</main>

@@ -1,0 +1,150 @@
+<main class="
+        min-h-screen bg-space-975
+        px-6 py-8 text-slate-100
+      ">
+    <div class="mx-auto max-w-5xl">
+        <header class="
+            mb-8 flex items-center
+            justify-between
+          ">
+            <div>
+                <p class="
+                text-xs uppercase
+                tracking-[0.3em]
+                text-eleanor-300/70
+              ">
+                    Eleanor / Settings
+                </p>
+
+                <h1 class="mt-2 text-3xl font-semibold">
+                    Personality & security
+                </h1>
+            </div>
+
+            <div class="flex gap-3">
+                <a routerLink="/security" class="eleanor-button">
+                    Security
+                </a>
+
+                <a routerLink="/assistant" class="eleanor-button">
+                    Back
+                </a>
+            </div>
+        </header>
+
+        <section class="
+            grid gap-4
+            lg:grid-cols-2
+          ">
+            <article class="eleanor-setting-card">
+                <h2 class="eleanor-setting-title">
+                    Personality
+                </h2>
+
+                <app-segmented-control [options]="personalityOptions" [value]="settings.settings().personality"
+                    (valueChange)="changePersonality($event)" />
+            </article>
+
+            <article class="eleanor-setting-card">
+                <h2 class="eleanor-setting-title">
+                    Verbosity
+                </h2>
+
+                <app-segmented-control [options]="verbosityOptions" [value]="settings.settings().verbosity"
+                    (valueChange)="changeVerbosity($event)" />
+            </article>
+
+            <article class="eleanor-setting-card">
+                <h2 class="eleanor-setting-title">
+                    Formality
+                </h2>
+
+                <app-segmented-control [options]="formalityOptions" [value]="settings.settings().formality"
+                    (valueChange)="changeFormality($event)" />
+            </article>
+
+            <article class="eleanor-setting-card">
+                <h2 class="eleanor-setting-title">
+                    Initiative
+                </h2>
+
+                <app-segmented-control [options]="initiativeOptions" [value]="settings.settings().initiative"
+                    (valueChange)="changeInitiative($event)" />
+            </article>
+
+            <article class="eleanor-setting-card">
+                <h2 class="eleanor-setting-title">
+                    Turn-taking
+                </h2>
+
+                <app-segmented-control [options]="turnTakingOptions" [value]="settings.settings().turnTaking"
+                    (valueChange)="changeTurnTaking($event)" />
+            </article>
+
+            <article class="eleanor-setting-card">
+                <h2 class="eleanor-setting-title">
+                    Humor · {{ settings.settings().humor }}
+                </h2>
+
+                <input class="eleanor-range" type="range" min="0" max="3" step="1" [value]="settings.settings().humor"
+                    (input)="changeHumor($event)">
+            </article>
+
+            <article class="eleanor-setting-card">
+                <h2 class="eleanor-setting-title">
+                    Speech speed ·
+                    {{ settings.settings().speechSpeed.toFixed(2) }}×
+                </h2>
+
+                <input class="eleanor-range" type="range" min="0.75" max="1.30" step="0.05"
+                    [value]="settings.settings().speechSpeed" (input)="changeSpeechSpeed($event)">
+            </article>
+
+            <article class="
+              eleanor-setting-card
+              lg:col-span-2
+            ">
+                <h2 class="eleanor-setting-title">
+                    Voice
+                </h2>
+
+                <app-segmented-control [options]="voiceOptions" [value]="settings.settings().voice"
+                    (valueChange)="changeVoice($event)" />
+            </article>
+
+            <article class="
+              eleanor-panel p-6
+              lg:col-span-2
+            ">
+                <h2 class="text-lg font-semibold">
+                    Security
+                </h2>
+
+                <div class="mt-4 flex flex-wrap gap-3">
+                    <span class="eleanor-chip">
+                        Passkeys: {{ passkeys.count() }}
+                    </span>
+
+                    <span class="eleanor-chip">
+                        Provider:
+                        {{ credentials.provider() ?? "not configured" }}
+                    </span>
+
+                    <span class="eleanor-chip">
+                        Profile:
+                        {{ settings.profileMetric() }}
+                    </span>
+                </div>
+
+                <p class="
+                mt-4 text-sm leading-6
+                text-slate-500
+              ">
+                    Credential metadata and credential changes require a
+                    fresh passkey step-up. The stored raw API key is never
+                    returned to the browser.
+                </p>
+            </article>
+        </section>
+    </div>
+</main>

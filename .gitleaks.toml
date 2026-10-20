@@ -1,0 +1,17 @@
+# gitleaks configuration — run in CI (see .github/workflows/ci.yml) and locally:
+#   docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:latest detect -s /repo -c /repo/.gitleaks.toml
+title = "eleanor"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Documented placeholders in env templates"
+paths = [
+  '''(^|/)\.env\.example$''',
+  '''docs/.*\.md$''',
+]
+regexes = [
+  '''REPLACE_WITH_32_BYTE_BASE64_VALUE''',
+  '''replace-me''',
+]
