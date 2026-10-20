@@ -11,7 +11,7 @@ import {
 import { AuthService } from "./auth";
 
 import {
-  AssistantSettingsService,
+  SettingsService,
 } from "./settings";
 
 import type {
@@ -25,8 +25,8 @@ import type {
 })
 export class RealtimeVoiceService {
   private readonly auth: AuthService = inject(AuthService);
-  private readonly settings: AssistantSettingsService =
-    inject(AssistantSettingsService);
+  private readonly settings: SettingsService =
+    inject(SettingsService);
 
   private readonly audioLevels: AudioLevelsService =
     inject(AudioLevelsService);

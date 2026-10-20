@@ -9,7 +9,7 @@ import {
 } from "@angular/router";
 import { AssistantPersonality, AssistantVerbosity, AssistantFormality, AssistantInitiative, AssistantTurnTaking, AssistantVoice } from "../../../core/schema/models/settings";
 import { RealtimeVoiceService } from "../../../core/services/realtime";
-import { AssistantSettingsService } from "../../../core/services/settings";
+import { SettingsService } from "../../../core/services/settings";
 import { SegmentedControlComponent } from "../../feature/segmented-control";
 import type { SegmentedControlOption } from "../../feature/segmented-control";
 import { PasskeyService } from "../../../core/services/passkey";
@@ -80,7 +80,7 @@ export class SettingsPage {
     }));
 
   constructor(
-    readonly settings: AssistantSettingsService,
+    readonly settings: SettingsService,
     readonly passkeys: PasskeyService,
     readonly credentials: ProviderService,
   ) {}

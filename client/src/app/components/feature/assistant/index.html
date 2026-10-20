@@ -1,0 +1,69 @@
+<main class="
+        relative grid min-h-screen place-items-center
+        overflow-hidden bg-space-975 px-6 text-white
+      ">
+    <nav class="
+          absolute left-6 right-6 top-6 z-20
+          flex items-center justify-between
+        ">
+        <strong class="text-xs tracking-[0.3em]">
+            ELEANOR
+        </strong>
+
+        <div class="flex gap-3">
+            <a routerLink="/settings" class="eleanor-button">
+                Settings
+            </a>
+
+            <button type="button" class="eleanor-button" (click)="logout()">
+                Sign out
+            </button>
+        </div>
+    </nav>
+
+    <section class="
+          relative z-10 flex flex-col
+          items-center gap-8 text-center
+        ">
+        <app-voice-orb-island [state]="voice.state()" [inputLevel]="voice.inputLevel()"
+            [outputLevel]="voice.outputLevel()" />
+
+        <div>
+            <p class="
+              mb-2 text-xs uppercase
+              tracking-[0.25em]
+              text-eleanor-300/60
+            ">
+                {{ readinessLabel() }}
+            </p>
+
+            <h1 class="text-2xl font-semibold">
+                {{ voice.message() }}
+            </h1>
+
+            <p class="mt-2 text-sm text-slate-500">
+                {{
+                auth.user()?.name ??
+                auth.user()?.email ??
+                "Authenticated"
+                }}
+            </p>
+        </div>
+
+        @if (ready() && !voice.connected()) {
+        <button type="button" class="eleanor-button min-w-44 py-3" (click)="activate()">
+            Activate Eleanor
+        </button>
+        } @else if (voice.connected()) {
+        <button type="button" class="eleanor-button" (click)="voice.disconnect()">
+            Disconnect
+        </button>
+        }
+    </section>
+
+    <app-passkey-setup-dialog [open]="showPasskeyDialog()" [supported]="passkeys.supported()" [busy]="passkeyBusy()"
+        [error]="passkeyError()" (enroll)="enrollPasskey()" />
+
+    <app-provider-credential-dialog #credentialDialog [open]="showCredentialDialog()" [busy]="credentialBusy()"
+        [error]="credentialError()" (save)="saveCredential($event)" />
+</main>

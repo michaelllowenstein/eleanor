@@ -1,0 +1,59 @@
+<dialog #dialog class="
+        m-auto w-[calc(100%-2rem)] max-w-lg
+        rounded-3xl border border-slate-700/70
+        bg-space-950 p-0 text-slate-100
+        shadow-[0_40px_120px_rgba(0,0,0,.7)]
+        backdrop:bg-black/70
+        backdrop:backdrop-blur-sm
+      " (cancel)="blockClose($event)">
+    <form class="p-8" (submit)="submit($event)">
+        <p class="
+            text-xs uppercase tracking-[0.28em]
+            text-eleanor-300/70
+          ">
+            Provider setup
+        </p>
+
+        <h2 class="mt-3 text-2xl font-semibold">
+            Connect Eleanor.
+        </h2>
+
+        <p class="mt-4 text-sm leading-6 text-slate-400">
+            The API key is submitted to Eleanor's BFF, encrypted at rest,
+            and never returned to browser JavaScript. Saving requires
+            a fresh passkey verification.
+        </p>
+
+        <label class="mt-6 block text-xs text-slate-400">
+            API Provider
+        </label>
+
+        <select class="eleanor-input mt-2" [value]="provider()" (change)="provider.set(readProvider($event))">
+            <option value="openai">
+                OpenAI
+            </option>
+        </select>
+
+        <label class="mt-5 block text-xs text-slate-400">
+            API Key
+        </label>
+
+        <input class="eleanor-input mt-2 font-mono" type="password" autocomplete="off" spellcheck="false"
+            placeholder="Enter API key" [value]="apiKey()" (input)="apiKey.set(readInput($event))">
+
+        @if (error()) {
+        <p class="mt-4 text-sm text-red-300">
+            {{ error() }}
+        </p>
+        }
+
+        <button type="submit" class="eleanor-button mt-7 w-full py-3"
+            [disabled]="busy() || apiKey().trim().length < 20">
+            {{
+            busy()
+            ? "Verifying & securing…"
+            : "Connect provider"
+            }}
+        </button>
+    </form>
+</dialog>

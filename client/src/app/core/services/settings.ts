@@ -1,10 +1,11 @@
 import {
   Injectable,
   computed,
-  inject,
   signal,
 } from "@angular/core";
 
+import { ProfileApiService } from "./api";
+import { ProfileMetricService } from "./metric";
 import type {
   AssistantFormality,
   AssistantInitiative,
@@ -14,9 +15,11 @@ import type {
   AssistantVerbosity,
   AssistantVoice,
 } from "../schema/models/settings";
-import { ProfileMetricService } from "./metric";
 
-const DEFAULT_SETTINGS: AssistantSettings = {
+const STORAGE_KEY =
+  "eleanor.assistant-profile.metric";
+
+const DEFAULTS: AssistantSettings = {
   personality: "professional",
   verbosity: "balanced",
   formality: "neutral",
@@ -24,335 +27,201 @@ const DEFAULT_SETTINGS: AssistantSettings = {
   turnTaking: "balanced",
   humor: 1,
   speechSpeed: 1,
-  voice: "marin"
+  voice: "marin",
 };
 
 @Injectable({
-  providedIn: "root"
+  providedIn: "root",
 })
-export class AssistantSettingsService {
-  private readonly profileMetricService: ProfileMetricService = inject(ProfileMetricService);
-
-  readonly settings = signal<AssistantSettings>(DEFAULT_SETTINGS);
+export class SettingsService {
+  readonly settings = signal<AssistantSettings>(
+    this.loadLocal(),
+  );
 
   readonly profileMetric = computed(
-    () =>
-      this.profileMetricService.encode(
-        this.settings(),
-      ),
+    () => this.codec.encode(this.settings()),
   );
 
   readonly instructions = computed(
-    () => this.buildInstructions(this.settings()),
+    () => `
+You are Eleanor, a realtime personal AI assistant.
+
+Profile:
+- Personality: ${this.settings().personality}
+- Verbosity: ${this.settings().verbosity}
+- Formality: ${this.settings().formality}
+- Initiative: ${this.settings().initiative}
+- Humor: ${this.settings().humor}/3
+
+Speak naturally and conversationally.
+Handle interruptions gracefully.
+Never claim an external action succeeded unless a trusted tool confirms it.
+`.trim(),
   );
 
-  readonly maxOutputTokens = computed(
-    () => {
-      switch (this.settings().verbosity) {
-        case "brief":
-          return 220;
-
-        case "balanced":
-          return 600;
-
-        case "detailed":
-          return 1400;
-      }
-    },
+  readonly maxOutputTokens = computed(() =>
+    this.settings().verbosity === "brief"
+      ? 220
+      : this.settings().verbosity === "detailed"
+        ? 1400
+        : 600,
   );
 
-  readonly vadEagerness = computed(
-    (): "low" | "medium" | "high" => {
-      switch (this.settings().turnTaking) {
-        case "patient":
-          return "low";
-
-        case "balanced":
-          return "medium";
-
-        case "quick":
-          return "high";
-      }
-    },
+  readonly vadEagerness = computed<
+    "low" | "medium" | "high"
+  >(() =>
+    this.settings().turnTaking === "patient"
+      ? "low"
+      : this.settings().turnTaking === "quick"
+        ? "high"
+        : "medium",
   );
+
+  private saveTimer:
+    ReturnType<typeof setTimeout> | null =
+    null;
+
+  constructor(
+    private readonly codec: ProfileMetricService,
+    private readonly api: ProfileApiService,
+  ) {}
+
+  async hydrateFromAccount(): Promise<void> {
+    const remoteMetric = await this.api.load();
+
+    if (remoteMetric) {
+      this.set(
+        this.codec.decode(Number(remoteMetric)),
+        false,
+      );
+      return;
+    }
+
+    await this.api.save(this.profileMetric());
+  }
 
   updatePersonality(
-    personality: AssistantPersonality,
+    value: AssistantPersonality,
   ): void {
-    this.patch({
-      personality
-    });
+    this.patch({ personality: value });
   }
 
   updateVerbosity(
-    verbosity: AssistantVerbosity,
+    value: AssistantVerbosity,
   ): void {
-    this.patch({
-      verbosity
-    });
+    this.patch({ verbosity: value });
   }
 
   updateFormality(
-    formality: AssistantFormality,
+    value: AssistantFormality,
   ): void {
-    this.patch({
-      formality
-    });
+    this.patch({ formality: value });
   }
 
   updateInitiative(
-    initiative: AssistantInitiative,
+    value: AssistantInitiative,
   ): void {
-    this.patch({
-      initiative
-    });
+    this.patch({ initiative: value });
   }
 
   updateTurnTaking(
-    turnTaking: AssistantTurnTaking,
+    value: AssistantTurnTaking,
   ): void {
-    this.patch({
-      turnTaking
-    });
-  }
-
-  updateHumor(
-    humor: number,
-  ): void {
-    this.patch({
-      humor: this.clamp(humor, 0, 3)
-    });
-  }
-
-  updateSpeechSpeed(
-    speechSpeed: number,
-  ): void {
-    this.patch({
-      speechSpeed:
-        this.clamp(speechSpeed, 0.75, 1.3)
-    });
+    this.patch({ turnTaking: value });
   }
 
   updateVoice(
-    voice: AssistantVoice,
+    value: AssistantVoice,
   ): void {
+    this.patch({ voice: value });
+  }
+
+  updateHumor(value: number): void {
     this.patch({
-      voice
+      humor: Math.max(
+        0,
+        Math.min(3, Math.round(value)),
+      ),
+    });
+  }
+
+  updateSpeechSpeed(value: number): void {
+    const clamped = Math.max(
+      0.75,
+      Math.min(1.3, value),
+    );
+
+    this.patch({
+      speechSpeed: Number(
+        (
+          Math.round((clamped - 0.75) / 0.05) *
+            0.05 +
+          0.75
+        ).toFixed(2),
+      ),
     });
   }
 
   reset(): void {
-    this.settings.set(DEFAULT_SETTINGS);
+    this.set(DEFAULTS, true);
   }
 
   private patch(
     changes: Partial<AssistantSettings>,
   ): void {
-    this.settings.update(
-      (current) => ({
-        ...current,
-        ...changes
-      }),
+    this.set(
+      {
+        ...this.settings(),
+        ...changes,
+      },
+      true,
     );
   }
 
-  private buildInstructions(
+  private set(
     settings: AssistantSettings,
-  ): string {
-    const personality =
-      this.personalityInstruction(
-        settings.personality,
+    sync: boolean,
+  ): void {
+    this.settings.set(settings);
+
+    const metric = this.codec.encode(settings);
+
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(
+        STORAGE_KEY,
+        String(metric),
       );
-
-    const verbosity =
-      this.verbosityInstruction(
-        settings.verbosity,
-      );
-
-    const formality =
-      this.formalityInstruction(
-        settings.formality,
-      );
-
-    const initiative =
-      this.initiativeInstruction(
-        settings.initiative,
-      );
-
-    const humor =
-      this.humorInstruction(settings.humor);
-
-    return `
-You are ELEANOR, a realtime personal voice assistant.
-
-Core behavior:
-- Speak naturally and conversationally.
-- Optimize responses for spoken conversation.
-- Handle interruptions naturally.
-- Remember the current conversation.
-- Never claim an external action succeeded unless a tool confirms it.
-- Never describe yourself as human.
-- Your name is ELEANOR.
-
-Personality:
-${personality}
-
-Response length:
-${verbosity}
-
-Communication style:
-${formality}
-
-Initiative:
-${initiative}
-
-Humor:
-${humor}
-
-Conversation:
-- Resolve follow-up questions from conversational context.
-- Ask one concise clarification question when required.
-- Avoid repetitive acknowledgements.
-- Avoid markdown-like formatting in spoken responses.
-`.trim();
-  }
-
-  private personalityInstruction(
-    personality: AssistantPersonality,
-  ): string {
-    switch (personality) {
-      case "professional":
-        return [
-          "- Calm, highly competent and composed.",
-          "- Prefer precise language.",
-          "- Remain approachable without sounding overly enthusiastic."
-        ].join("\n");
-
-      case "warm":
-        return [
-          "- Friendly, empathetic and relaxed.",
-          "- Sound interested in the conversation.",
-          "- Prefer natural everyday phrasing."
-        ].join("\n");
-
-      case "witty":
-        return [
-          "- Intelligent, playful and quick-witted.",
-          "- Use occasional dry humor.",
-          "- Never let humor interfere with accuracy."
-        ].join("\n");
-
-      case "direct":
-        return [
-          "- Highly concise and decisive.",
-          "- Lead with the answer.",
-          "- Minimize social filler."
-        ].join("\n");
     }
-  }
 
-  private verbosityInstruction(
-    verbosity: AssistantVerbosity,
-  ): string {
-    switch (verbosity) {
-      case "brief":
-        return [
-          "- Keep most responses to one or two spoken sentences.",
-          "- Add detail only when explicitly requested."
-        ].join("\n");
-
-      case "balanced":
-        return [
-          "- Give enough context to answer clearly.",
-          "- Prefer short conversational explanations."
-        ].join("\n");
-
-      case "detailed":
-        return [
-          "- Explain reasoning and context when useful.",
-          "- Longer answers are acceptable, but remain conversational."
-        ].join("\n");
+    if (!sync) {
+      return;
     }
-  }
 
-  private formalityInstruction(
-    formality: AssistantFormality,
-  ): string {
-    switch (formality) {
-      case "casual":
-        return [
-          "- Use relaxed conversational language.",
-          "- Use contractions naturally."
-        ].join("\n");
-
-      case "neutral":
-        return [
-          "- Use polished conversational language.",
-          "- Avoid being either overly casual or overly formal."
-        ].join("\n");
-
-      case "formal":
-        return [
-          "- Use professional, polished language.",
-          "- Avoid slang."
-        ].join("\n");
+    if (this.saveTimer) {
+      clearTimeout(this.saveTimer);
     }
+
+    this.saveTimer = setTimeout(() => {
+      void this.api.save(metric);
+    }, 450);
   }
 
-  private initiativeInstruction(
-    initiative: AssistantInitiative,
-  ): string {
-    switch (initiative) {
-      case "reactive":
-        return [
-          "- Answer only what was requested.",
-          "- Avoid unsolicited suggestions."
-        ].join("\n");
-
-      case "balanced":
-        return [
-          "- Answer directly.",
-          "- Offer a useful next step only when clearly relevant."
-        ].join("\n");
-
-      case "proactive":
-        return [
-          "- Anticipate likely follow-up needs.",
-          "- Suggest useful next actions when appropriate.",
-          "- Do not overwhelm the user with unnecessary suggestions."
-        ].join("\n");
+  private loadLocal(): AssistantSettings {
+    if (typeof localStorage === "undefined") {
+      return DEFAULTS;
     }
-  }
 
-  private humorInstruction(
-    humor: number,
-  ): string {
-    switch (humor) {
-      case 0:
-        return "- Do not deliberately use humor.";
+    const raw = localStorage.getItem(STORAGE_KEY);
 
-      case 1:
-        return "- Use humor rarely and subtly.";
-
-      case 2:
-        return "- Use occasional light or dry humor.";
-
-      default:
-        return [
-          "- Be noticeably witty when the context allows.",
-          "- Never joke about serious or sensitive situations."
-        ].join("\n");
+    if (!raw) {
+      return DEFAULTS;
     }
-  }
 
-  private clamp(
-    value: number,
-    minimum: number,
-    maximum: number,
-  ): number {
-    return Math.min(
-      maximum,
-      Math.max(minimum, value),
-    );
+    try {
+      return this.codec.decode(Number(raw));
+    } catch {
+      localStorage.removeItem(STORAGE_KEY);
+      return DEFAULTS;
+    }
   }
 }
