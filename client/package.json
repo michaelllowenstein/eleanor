@@ -16,6 +16,7 @@
     "ngo:comp": "node scripts/gen.mjs",
     "ngo": "node scripts/gen.mjs",
     "lint": "ng lint",
+    "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.spec.json --noEmit",
     "test": "npm run test:unit",
     "test:unit": "ng test --watch=false",
     "test:coverage": "ng test --watch=false --coverage",

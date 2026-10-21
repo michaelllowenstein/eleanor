@@ -1,0 +1,23 @@
+{
+  "profile_metric_reference": {
+    "profiles": 155520,
+    "unique": 155520,
+    "collisions": 0,
+    "fastest_ms": 31.23,
+    "median_ms": 34.52,
+    "slowest_ms": 37.07,
+    "runtime": "Python reference implementation in artifact-generation environment"
+  },
+  "aes_256_gcm_reference": {
+    "roundtrips": 25000,
+    "total_ms": 32.56,
+    "per_roundtrip_us": 1.302,
+    "runtime": "Python cryptography/OpenSSL reference implementation"
+  },
+  "secure_token_reference": {
+    "tokens": 100000,
+    "total_ms": 51.15,
+    "per_token_us": 0.511,
+    "runtime": "Python secrets reference implementation"
+  }
+}

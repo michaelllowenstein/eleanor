@@ -1,10 +1,20 @@
 {
   "name": "eleanor",
-  "version": "0.7.0",
+  "version": "1.0.0",
   "private": true,
-  "workspaces": ["client", "api"],
+  "type": "module",
+  "workspaces": ["api", "client"],
+  "engines": {
+    "node": ">=24.20.0",
+    "npm": ">=10"
+  },
   "scripts": {
-    "local": "concurrently -n api,client \"npm run local -w @eleanor/api\" \"npm run local -w @eleanor/client\"",
+    "local": "concurrently -k -n api,client -c cyan,magenta \"npm run local -w @eleanor/api\" \"npm run local -w @eleanor/client\"",
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down",
+    "db:reset": "docker compose down -v && docker compose up -d --wait",
+    "migrate": "npm run migrate -w @eleanor/api",
+    "typecheck": "npm run typecheck -w @eleanor/api && npm run typecheck -w @eleanor/client",
     "build": "npm run build -w @eleanor/api && npm run build -w @eleanor/client",
     "test": "npm run test -w @eleanor/api && npm run test -w @eleanor/client",
     "test:e2e": "playwright test",

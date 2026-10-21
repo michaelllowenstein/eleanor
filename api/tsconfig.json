@@ -4,10 +4,14 @@
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "strict": true,
+    "noImplicitOverride": true,
+    "rootDir": "src",
     "outDir": "dist",
-    "rootDir": "./",
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "types": ["node"]
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.spec.ts", "src/**/*.test.ts", "src/testing/**"]
 }
