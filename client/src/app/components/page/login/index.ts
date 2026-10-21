@@ -18,7 +18,7 @@ import { AuthService } from "../../../core/services/auth";
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class: "block min-h-screen"
+    class: "flex flex-1 flex-col"
   },
   templateUrl: './index.html'
 })

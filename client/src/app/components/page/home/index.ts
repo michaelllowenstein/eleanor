@@ -8,6 +8,8 @@ import {
   RouterLink,
 } from "@angular/router";
 
+import { APP_PATHS } from "../../../core/schema/constants";
+
 import {
   RealtimeVoiceService,
 } from "../../../core/services/realtime";
@@ -25,13 +27,15 @@ import {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class: "block min-h-screen"
+    class: "flex flex-1 flex-col"
   },
   templateUrl: './index.html'
 })
 export class HomePage {
   readonly voice =
     inject(RealtimeVoiceService);
+
+  readonly paths = APP_PATHS;
 
   readonly stateLabel = () => {
     switch (this.voice.state()) {

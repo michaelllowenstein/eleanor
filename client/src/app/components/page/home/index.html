@@ -1,38 +1,12 @@
 <main class="
-        relative grid min-h-screen place-items-center
-        overflow-hidden bg-space-950 px-6 text-white
+        relative grid flex-1 place-items-center
+        overflow-hidden px-6 py-16 text-white
       ">
     <div class="
           pointer-events-none absolute inset-0
           bg-[radial-gradient(circle_at_center,
           rgba(9,168,234,.14),transparent_48%)]
         "></div>
-
-    <nav class="
-          absolute left-6 right-6 top-6 z-20
-          flex items-center justify-between
-        ">
-        <a routerLink="/assistant" class="
-            text-sm font-semibold
-            tracking-[0.25em]
-            text-eleanor-100
-          ">
-            ELEANOR
-        </a>
-
-        <a routerLink="/settings" class="
-            rounded-full border
-            border-slate-700
-            bg-slate-900/50
-            px-4 py-2
-            text-sm text-slate-300
-            transition
-            hover:border-eleanor-400/40
-            hover:text-white
-          ">
-            Settings
-        </a>
-    </nav>
 
     <section class="
           relative z-10 flex w-full max-w-2xl
@@ -113,7 +87,7 @@
             </button>
             }
 
-            <a routerLink="/settings" class="
+            <a [routerLink]="paths.settings" class="
               rounded-full border
               border-slate-700
               px-7 py-3

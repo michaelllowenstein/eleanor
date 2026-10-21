@@ -5,14 +5,13 @@ import {
   signal,
 } from "@angular/core";
 
-import {
-  AudioLevelsService,
-} from "./audio";
+import { AudioLevelsService } from "./audio";
 import { AuthService } from "./auth";
-
 import {
-  SettingsService,
-} from "./settings";
+  REALTIME_TRANSPORT,
+  type RealtimeTransport,
+} from "../transport/realtime";
+import { SettingsService } from "./settings";
 
 import type {
   RealtimeServerEvent,
@@ -21,52 +20,26 @@ import type {
 } from "../schema/models/realtime";
 
 @Injectable({
-  providedIn: "root"
+  providedIn: "root",
 })
 export class RealtimeVoiceService {
   private readonly auth: AuthService = inject(AuthService);
-  private readonly settings: SettingsService =
-    inject(SettingsService);
+  private readonly settings: SettingsService = inject(SettingsService);
+  private readonly audioLevels: AudioLevelsService = inject(AudioLevelsService);
+  private readonly createTransport = inject(REALTIME_TRANSPORT);
 
-  private readonly audioLevels: AudioLevelsService =
-    inject(AudioLevelsService);
+  readonly state = signal<VoiceConnectionState>("offline");
+  readonly message = signal("Activate ELEANOR to begin.");
+  readonly connected = signal(false);
+  readonly voiceLocked = signal(false);
+  readonly settingsPending = signal(false);
 
-  readonly state =
-    signal<VoiceConnectionState>(
-      "offline",
-    );
+  readonly inputLevel = this.audioLevels.inputLevel;
+  readonly outputLevel = this.audioLevels.outputLevel;
 
-  readonly message =
-    signal(
-      "Activate ELEANOR to begin.",
-    );
-
-  readonly connected =
-    signal(false);
-
-  readonly voiceLocked =
-    signal(false);
-
-  readonly settingsPending =
-    signal(false);
-
-  readonly inputLevel =
-    this.audioLevels.inputLevel;
-
-  readonly outputLevel =
-    this.audioLevels.outputLevel;
-
-  private peerConnection:
-    RTCPeerConnection | null = null;
-
-  private dataChannel:
-    RTCDataChannel | null = null;
-
-  private microphoneStream:
-    MediaStream | null = null;
-
-  private remoteAudio:
-    HTMLAudioElement | null = null;
+  private transport: RealtimeTransport | null = null;
+  private microphoneStream: MediaStream | null = null;
+  private remoteAudio: HTMLAudioElement | null = null;
 
   constructor() {
     effect(() => {
@@ -79,9 +52,7 @@ export class RealtimeVoiceService {
         return;
       }
 
-      if (
-        this.state() === "speaking"
-      ) {
+      if (this.state() === "speaking") {
         this.settingsPending.set(true);
         return;
       }
@@ -91,78 +62,50 @@ export class RealtimeVoiceService {
   }
 
   async connect(): Promise<void> {
-    if (
-      this.state() !== "offline" &&
-      this.state() !== "error"
-    ) {
+    if (this.state() !== "offline" && this.state() !== "error") {
       return;
     }
 
     this.voiceLocked.set(false);
     this.settingsPending.set(false);
     this.state.set("connecting");
-
-    this.message.set(
-      "Requesting microphone access…",
-    );
+    this.message.set("Requesting microphone access…");
 
     try {
-      const stream =
-        await navigator.mediaDevices
-          .getUserMedia({
-            audio: {
-              echoCancellation: true,
-              noiseSuppression: true,
-              autoGainControl: true
-            }
-          });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+      });
 
       this.microphoneStream = stream;
+      await this.audioLevels.attachInput(stream);
 
-      await this.audioLevels.attachInput(
-        stream,
-      );
+      const audio = new Audio();
+      audio.autoplay = true;
+      this.remoteAudio = audio;
 
-      const peerConnection =
-        new RTCPeerConnection();
+      const transport = this.createTransport();
+      this.transport = transport;
 
-      this.peerConnection =
-        peerConnection;
-
-      this.configureRemoteAudio(
-        peerConnection,
-      );
-
-      this.configureMicrophone(
-        peerConnection,
-        stream,
-      );
-
-      this.configureDataChannel(
-        peerConnection,
-      );
-
-      this.configureConnectionEvents(
-        peerConnection,
-      );
-
-      await this.establishSession(
-        peerConnection,
-      );
+      await transport.connect(stream, (offer) => this.exchangeSdp(offer), {
+        onEvent: (event) => this.handleRealtimeEvent(event),
+        onRemoteAudio: (remote) => this.playRemoteAudio(remote),
+        onChannelOpen: () => {
+          void this.audioLevels.resume();
+          this.applySettingsToSession();
+        },
+        onConnectionState: (connectionState) => this.handleConnectionState(connectionState),
+      });
     } catch (error) {
-      console.error(
-        "Unable to connect realtime assistant:",
-        error,
-      );
+      console.error("Unable to connect realtime assistant:", error);
 
       this.releaseResources();
-
       this.state.set("error");
-
       this.message.set(
-        error instanceof Error
-          ? error.message
-          : "Unable to connect to ELEANOR.",
+        error instanceof Error ? error.message : "Unable to connect to ELEANOR.",
       );
     }
   }
@@ -173,253 +116,56 @@ export class RealtimeVoiceService {
     this.connected.set(false);
     this.voiceLocked.set(false);
     this.settingsPending.set(false);
-
     this.state.set("offline");
-
-    this.message.set(
-      "Activate ELEANOR to begin.",
-    );
+    this.message.set("Activate ELEANOR to begin.");
   }
 
   applySettingsToSession(): void {
-    if (
-      !this.connected() ||
-      !this.dataChannel ||
-      this.dataChannel.readyState !==
-        "open"
-    ) {
+    const transport = this.transport;
+
+    if (!this.connected() || !transport?.isOpen()) {
       return;
     }
 
-    if (
-      this.state() === "speaking"
-    ) {
+    if (this.state() === "speaking") {
       this.settingsPending.set(true);
       return;
     }
 
-    const current =
-      this.settings.settings();
+    const current = this.settings.settings();
 
-    const output:
-      RealtimeSessionUpdateEvent[
-        "session"
-      ]["audio"]["output"] = {
-        speed: current.speechSpeed,
+    const output: RealtimeSessionUpdateEvent["session"]["audio"]["output"] = {
+      speed: current.speechSpeed,
+      ...(this.voiceLocked() ? {} : { voice: current.voice }),
+    };
 
-        ...(this.voiceLocked()
-          ? {}
-          : {
-              voice: current.voice
-            })
-      };
-
-    const event:
-      RealtimeSessionUpdateEvent = {
-        type: "session.update",
-
-        session: {
-          type: "realtime",
-
-          instructions:
-            this.settings.instructions(),
-
-          max_output_tokens:
-            this.settings
-              .maxOutputTokens(),
-
-          audio: {
-            input: {
-              turn_detection: {
-                type: "semantic_vad",
-
-                eagerness:
-                  this.settings
-                    .vadEagerness(),
-
-                create_response: true,
-
-                interrupt_response: true
-              }
+    const event: RealtimeSessionUpdateEvent = {
+      type: "session.update",
+      session: {
+        type: "realtime",
+        instructions: this.settings.instructions(),
+        max_output_tokens: this.settings.maxOutputTokens(),
+        audio: {
+          input: {
+            turn_detection: {
+              type: "semantic_vad",
+              eagerness: this.settings.vadEagerness(),
+              create_response: true,
+              interrupt_response: true,
             },
+          },
+          output,
+        },
+      },
+    };
 
-            output
-          }
-        }
-      };
-
-    this.sendEvent(event);
-
+    transport.send(event);
     this.settingsPending.set(false);
   }
 
-  private configureRemoteAudio(
-    peerConnection:
-      RTCPeerConnection,
-  ): void {
-    const audio = new Audio();
-
-    audio.autoplay = true;
-
-    peerConnection.addEventListener(
-      "track",
-      (
-        event: RTCTrackEvent,
-      ) => {
-        const existingStream =
-          event.streams[0];
-
-        const stream =
-          existingStream ??
-          new MediaStream([
-            event.track
-          ]);
-
-        audio.srcObject = stream;
-
-        void this.audioLevels
-          .attachOutput(stream)
-          .catch((error: unknown) => {
-            console.error(
-              "Unable to analyze assistant audio:",
-              error,
-            );
-          });
-      },
-    );
-
-    this.remoteAudio = audio;
-  }
-
-  private configureMicrophone(
-    peerConnection:
-      RTCPeerConnection,
-    stream: MediaStream,
-  ): void {
-    for (
-      const track of
-        stream.getAudioTracks()
-    ) {
-      peerConnection.addTrack(
-        track,
-        stream,
-      );
-    }
-  }
-
-  private configureDataChannel(
-    peerConnection:
-      RTCPeerConnection,
-  ): void {
-    const dataChannel =
-      peerConnection
-        .createDataChannel(
-          "oai-events",
-        );
-
-    dataChannel.addEventListener(
-      "open",
-      () => {
-        void this.audioLevels.resume();
-
-        this.applySettingsToSession();
-      },
-    );
-
-    dataChannel.addEventListener(
-      "message",
-      (
-        event:
-          MessageEvent<string>,
-      ) => {
-        this.handleRealtimeMessage(
-          event.data,
-        );
-      },
-    );
-
-    dataChannel.addEventListener(
-      "error",
-      (event) => {
-        console.error(
-          "Realtime data channel error:",
-          event,
-        );
-      },
-    );
-
-    this.dataChannel =
-      dataChannel;
-  }
-
-  private configureConnectionEvents(
-    peerConnection:
-      RTCPeerConnection,
-  ): void {
-    peerConnection.addEventListener(
-      "connectionstatechange",
-      () => {
-        switch (
-          peerConnection.connectionState
-        ) {
-          case "connected":
-            this.connected.set(true);
-
-            this.state.set(
-              "listening",
-            );
-
-            this.message.set(
-              "I'm listening.",
-            );
-
-            this.applySettingsToSession();
-            break;
-
-          case "failed":
-            this.connected.set(false);
-
-            this.state.set(
-              "error",
-            );
-
-            this.message.set(
-              "Realtime connection failed.",
-            );
-            break;
-
-          case "closed":
-            this.connected.set(false);
-            break;
-
-          default:
-            break;
-        }
-      },
-    );
-  }
-
-  private async establishSession(
-    peerConnection:
-      RTCPeerConnection,
-  ): Promise<void> {
-    const offer =
-      await peerConnection.createOffer();
-
-    await peerConnection
-      .setLocalDescription(
-        offer,
-      );
-
-    if (!offer.sdp) {
-      throw new Error(
-        "Browser failed to create a WebRTC SDP offer.",
-      );
-    }
-
-    this.message.set(
-      "Establishing realtime connection…",
-    );
+  /** Posts the SDP offer to the API and returns the answer. */
+  private async exchangeSdp(offer: string): Promise<string> {
+    this.message.set("Establishing realtime connection…");
 
     const response = await fetch("/api/realtime/session", {
       method: "POST",
@@ -429,22 +175,15 @@ export class RealtimeVoiceService {
         "X-Eleanor-Profile-Metric": String(this.settings.profileMetric()),
         ...this.auth.csrfHeaders(),
       },
-      body: offer.sdp,
+      body: offer,
     });
 
     if (!response.ok) {
-      let message =
-        "Realtime session creation failed.";
+      let message = "Realtime session creation failed.";
 
       try {
-        const error =
-          await response.json() as {
-            readonly error?: string;
-          };
-
-        message =
-          error.error ??
-          message;
+        const error = (await response.json()) as { readonly error?: string };
+        message = error.error ?? message;
       } catch {
         // Upstream failures may not contain JSON.
       }
@@ -452,80 +191,65 @@ export class RealtimeVoiceService {
       throw new Error(message);
     }
 
-    const answerSdp =
-      await response.text();
-
-    await peerConnection
-      .setRemoteDescription({
-        type: "answer",
-        sdp: answerSdp
-      });
+    return response.text();
   }
 
-  private handleRealtimeMessage(
-    payload: string,
-  ): void {
-    let event:
-      RealtimeServerEvent;
-
-    try {
-      event =
-        JSON.parse(
-          payload,
-        ) as RealtimeServerEvent;
-    } catch {
-      console.warn(
-        "Ignoring malformed realtime event:",
-        payload,
-      );
-
-      return;
+  private playRemoteAudio(stream: MediaStream): void {
+    if (this.remoteAudio) {
+      this.remoteAudio.srcObject = stream;
     }
 
+    void this.audioLevels.attachOutput(stream).catch((error: unknown) => {
+      console.error("Unable to analyze assistant audio:", error);
+    });
+  }
+
+  private handleConnectionState(connectionState: "connected" | "failed" | "closed"): void {
+    switch (connectionState) {
+      case "connected":
+        this.connected.set(true);
+        this.state.set("listening");
+        this.message.set("I'm listening.");
+        this.applySettingsToSession();
+        break;
+
+      case "failed":
+        this.connected.set(false);
+        this.state.set("error");
+        this.message.set("Realtime connection failed.");
+        break;
+
+      case "closed":
+        this.connected.set(false);
+        break;
+    }
+  }
+
+  private handleRealtimeEvent(event: RealtimeServerEvent): void {
     switch (event.type) {
       case "input_audio_buffer.speech_started":
         this.state.set("listening");
-
-        this.message.set(
-          "Listening…",
-        );
+        this.message.set("Listening…");
         break;
 
       case "input_audio_buffer.speech_stopped":
         this.state.set("thinking");
-
-        this.message.set(
-          "Thinking…",
-        );
+        this.message.set("Thinking…");
         break;
 
       case "response.created":
         this.voiceLocked.set(true);
-
-        this.state.set(
-          "speaking",
-        );
-
-        this.message.set(
-          "Responding…",
-        );
+        this.state.set("speaking");
+        this.message.set("Responding…");
         break;
 
       case "response.done":
-        this.state.set(
-          "listening",
-        );
+        this.state.set("listening");
+        this.message.set("I'm listening.");
 
-        this.message.set(
-          "I'm listening.",
-        );
-
-        if (
-          this.settingsPending()
-        ) {
+        if (this.settingsPending()) {
           this.applySettingsToSession();
         }
-
         break;
 
       case "session.updated":
@@ -534,11 +258,7 @@ export class RealtimeVoiceService {
 
       case "error":
         this.state.set("error");
-
-        this.message.set(
-          event.error?.message ??
-            "Realtime API error.",
-        );
+        this.message.set(event.error?.message ?? "Realtime API error.");
         break;
 
       default:
@@ -546,45 +266,19 @@ export class RealtimeVoiceService {
     }
   }
 
-  private sendEvent(
-    event:
-      RealtimeSessionUpdateEvent,
-  ): void {
-    if (
-      !this.dataChannel ||
-      this.dataChannel.readyState !==
-        "open"
-    ) {
-      return;
-    }
-
-    this.dataChannel.send(
-      JSON.stringify(event),
-    );
-  }
-
   private releaseResources(): void {
-    this.dataChannel?.close();
+    this.transport?.close();
 
-    this.peerConnection?.close();
-
-    this.microphoneStream
-      ?.getTracks()
-      .forEach(
-        (track) =>
-          track.stop(),
-      );
+    this.microphoneStream?.getTracks().forEach((track) => track.stop());
 
     if (this.remoteAudio) {
       this.remoteAudio.pause();
-      this.remoteAudio.srcObject =
-        null;
+      this.remoteAudio.srcObject = null;
     }
 
     this.audioLevels.stop();
 
-    this.dataChannel = null;
-    this.peerConnection = null;
+    this.transport = null;
     this.microphoneStream = null;
     this.remoteAudio = null;
   }

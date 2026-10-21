@@ -16,10 +16,13 @@ import { PasskeyService } from "../../../core/services/passkey";
 import { ProviderService } from "../../../core/services/provider";
 
 @Component({
-  selector: "app-security-page",
+  selector: "app-settings-page",
   standalone: true,
   imports: [RouterLink, SegmentedControlComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    class: "flex flex-1 flex-col"
+  },
   templateUrl: './index.html',
 })
 export class SettingsPage {

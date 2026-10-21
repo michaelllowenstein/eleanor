@@ -1,0 +1,29 @@
+<footer class="eleanor-footer">
+  <div class="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-6 text-xs text-slate-500 md:flex-row md:items-center md:justify-between">
+    <div class="flex items-center gap-3">
+      <span class="font-semibold tracking-[0.3em] text-slate-400">ELEANOR</span>
+      <span aria-hidden="true" class="h-3 w-px bg-slate-700"></span>
+      <span>© {{ year }}</span>
+      <span class="eleanor-chip px-2 py-0.5 text-[0.68rem]">
+        {{ platform.isDesktop() ? "Desktop" : "Web" }}
+      </span>
+      @if (mockTransport) {
+        <span class="rounded-full border border-amber-300/30 bg-amber-300/10 px-2 py-0.5 text-[0.68rem] text-amber-200">
+          Mock transport
+        </span>
+      }
+    </div>
+
+    <p class="max-w-md leading-5 md:text-center">
+      Your voice goes straight to your AI provider over an encrypted connection.
+      Eleanor's servers never receive or store audio.
+    </p>
+
+    @if (auth.authenticated()) {
+      <nav class="flex items-center gap-5" aria-label="Footer">
+        <a [routerLink]="paths.settings" class="transition hover:text-slate-200">Settings</a>
+        <a [routerLink]="paths.security" class="transition hover:text-slate-200">Security</a>
+      </nav>
+    }
+  </div>
+</footer>

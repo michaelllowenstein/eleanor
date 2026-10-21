@@ -13,14 +13,14 @@ import { PasskeyService } from "../../../core/services/passkey";
 import { ProviderCredentialDetails, AiProvider, ProviderService } from "../../../core/services/provider";
 
 @Component({
-  selector: "app-home",
+  selector: "app-security-page",
   standalone: true,
   imports: [
     RouterLink,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class: "block min-h-screen"
+    class: "flex flex-1 flex-col"
   },
   templateUrl: './index.html'
 })
