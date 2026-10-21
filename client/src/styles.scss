@@ -178,6 +178,144 @@ select {
       backdrop-filter: blur(4px);
     }
   }
+
+  // -------------------------------------------------------------------------
+  // Shell: navbar and footer
+  // -------------------------------------------------------------------------
+
+  .eleanor-navbar {
+    border-bottom: 1px solid rgb(51 65 85 / 0.35);
+    background: rgb(1 4 14 / 0.72); // space-975
+    backdrop-filter: blur(18px) saturate(140%);
+  }
+
+  .eleanor-brand-mark {
+    display: grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: 1px solid accent(0.3);
+    border-radius: $radius-pill;
+    background: accent(0.08);
+    transition: border-color $fast;
+
+    .group:hover & {
+      border-color: accent(0.55);
+    }
+  }
+
+  .eleanor-nav-link {
+    border-radius: $radius-pill;
+    padding: 0.4rem 0.9rem;
+    font-size: 0.875rem;
+    color: $text-muted;
+    transition: $fast;
+
+    &:hover {
+      color: white;
+      background: rgb(15 23 42 / 0.6);
+    }
+
+    &:focus-visible {
+      outline: 2px solid accent(0.6);
+      outline-offset: 2px;
+    }
+  }
+
+  .eleanor-nav-link-active,
+  .eleanor-nav-link-active:hover {
+    background: accent(0.1);
+    color: var(--color-eleanor-100);
+    box-shadow: inset 0 0 0 1px accent(0.25);
+  }
+
+  .eleanor-status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid rgb(51 65 85 / 0.6);
+    border-radius: $radius-pill;
+    background: rgb(15 23 42 / 0.6);
+    padding: 0.3rem 0.75rem;
+    font-size: 0.75rem;
+    color: $text-secondary;
+  }
+
+  .eleanor-dot-glow {
+    box-shadow: 0 0 10px accent(0.8);
+  }
+
+  .eleanor-avatar,
+  .eleanor-icon-button {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid rgb(71 85 105 / 0.7);
+    border-radius: $radius-pill;
+    background: rgb(15 23 42 / 0.6);
+    color: $text-secondary;
+    cursor: pointer;
+    transition: $fast;
+
+    &:hover,
+    &[aria-expanded="true"] {
+      border-color: accent(0.4);
+      color: white;
+    }
+
+    &:focus-visible {
+      outline: 2px solid accent(0.6);
+      outline-offset: 2px;
+    }
+  }
+
+  .eleanor-avatar {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--color-eleanor-100);
+  }
+
+  .eleanor-menu {
+    position: absolute;
+    top: calc(100% + 0.6rem);
+    overflow: hidden;
+    border: 1px solid rgb(51 65 85 / 0.7);
+    border-radius: 1rem;
+    background: rgb(2 6 23 / 0.96); // space-950
+    box-shadow: 0 24px 70px shade(0.5);
+    backdrop-filter: blur(22px);
+  }
+
+  .eleanor-menu-item {
+    display: block;
+    width: 100%;
+    border-radius: 0.6rem;
+    padding: 0.55rem 0.75rem;
+    text-align: left;
+    font-size: 0.875rem;
+    color: $text-secondary;
+    cursor: pointer;
+    transition: $fast;
+
+    &:hover,
+    &:focus-visible {
+      outline: none;
+      background: accent(0.07);
+      color: white;
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+  }
+
+  .eleanor-footer {
+    border-top: 1px solid rgb(51 65 85 / 0.3);
+    background: rgb(1 4 14 / 0.6);
+  }
 }
 
 // ---------------------------------------------------------------------------

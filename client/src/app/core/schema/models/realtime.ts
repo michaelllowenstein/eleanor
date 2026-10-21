@@ -16,14 +16,10 @@ export interface RealtimeServerEvent {
 
 export interface RealtimeSessionUpdateEvent {
   readonly type: "session.update";
-
   readonly session: {
     readonly type: "realtime";
-
     readonly instructions: string;
-
     readonly max_output_tokens: number;
-
     readonly audio: {
       readonly input: {
         readonly turn_detection: {
@@ -36,7 +32,6 @@ export interface RealtimeSessionUpdateEvent {
           readonly interrupt_response: true;
         };
       };
-
       readonly output: {
         readonly speed: number;
         readonly voice?: string;
