@@ -53,7 +53,10 @@ const app = createApp({
     redis,
     config.realtimeSessionRateLimitPerMinute,
   ),
-  realtimeProviderFactory: createOpenAIRealtimeProviderFactory(config.realtimeModel),
+  realtimeProviderFactory:
+  config.realtimeProvider === "mock"
+    ? createMockRealtimeProviderFactory()
+    : createOpenAIRealtimeProviderFactory(config.realtimeModel),
   readinessChecks: {
     database: () => database.query("SELECT 1"),
     redis: () => redis.ping(),

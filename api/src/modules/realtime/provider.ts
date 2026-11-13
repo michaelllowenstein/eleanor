@@ -127,3 +127,11 @@ succeeded unless a trusted tool confirms it.
     },
   };
 }
+
+export function createMockRealtimeProviderFactory(): RealtimeProviderFactory {
+  return () => ({
+    async createCall() {
+      return ["v=0", "o=- 0 0 IN IP4 127.0.0.1", "s=eleanor-mock", "t=0 0", ""].join("\r\n");
+    },
+  });
+}

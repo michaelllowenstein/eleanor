@@ -101,3 +101,8 @@ certs/
 .DS_Store
 Thumbs.db
 *.log
+
+.env.ai
+.env
+api/.env.ai
+api/.env

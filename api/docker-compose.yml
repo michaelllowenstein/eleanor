@@ -8,18 +8,15 @@ services:
       POSTGRES_USER: eleanor
       POSTGRES_PASSWORD: eleanor
     ports:
-      - "5432:5432"
+      - "5434:5432"
     volumes:
       - eleanor-postgres:/var/lib/postgresql/data
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U eleanor -d eleanor"
-        ]
+      test: ["CMD-SHELL", "pg_isready -U eleanor -d eleanor"]
       interval: 5s
       timeout: 5s
       retries: 10
+
   redis:
     image: redis:7-alpine
     container_name: eleanor-redis
@@ -28,22 +25,24 @@ services:
       - "6379:6379"
     volumes:
       - eleanor-redis:/data
-    command:
-      [
-        "redis-server",
-        "--appendonly",
-        "yes"
-      ]
+    command: ["redis-server", "--appendonly", "yes"]
     healthcheck:
-      test:
-        [
-          "CMD",
-          "redis-cli",
-          "ping"
-        ]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
       retries: 10
+
+  oidc:
+    image: ghcr.io/navikt/mock-oauth2-server:2.1.10
+    container_name: eleanor-oidc
+    restart: unless-stopped
+    hostname: localhost
+    ports:
+      - "8080:8080"
+    environment:
+      SERVER_PORT: "8080"
+      JSON_CONFIG: '{"interactiveLogin": true, "httpServer": "NettyWrapper"}'
+
 volumes:
   eleanor-postgres:
   eleanor-redis:

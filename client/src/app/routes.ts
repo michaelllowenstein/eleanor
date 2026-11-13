@@ -19,6 +19,13 @@ export const routes: Routes = [
     title: 'Eleanor'
   },
   {
+    path: "assistant",
+    loadComponent: () =>
+      import("./components/feature/assistant").then((m) => m.AssistantPage),
+    canActivate: [authGuard],
+    title: "Eleanor",
+  },
+  {
     path: 'settings',
     loadComponent: () => import('./components/page/settings').then(m => m.SettingsPage),
     canActivate: [authGuard],

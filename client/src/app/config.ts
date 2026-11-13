@@ -11,6 +11,13 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
-    provideRouter(routes)
+    provideRouter(routes),
+    {
+      provide: REALTIME_TRANSPORT,
+      useValue: () =>
+        env.realtimeTransport === "mock"
+          ? new MockRealtimeTransport()
+          : new WebRTCRealtimeTransport(),
+    },
   ]
 };

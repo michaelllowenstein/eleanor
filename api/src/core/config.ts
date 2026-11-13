@@ -104,6 +104,14 @@ export function loadConfig(env: Env = process.env): AppConfig {
     problems.push("LOG_LEVEL must be one of debug, info, warn, error.");
   }
 
+  const realtimeProvider = env.REALTIME_PROVIDER?.trim() || "openai";
+  if (realtimeProvider !== "openai" && realtimeProvider !== "mock") {
+    problems.push("REALTIME_PROVIDER must be openai or mock.");
+  }
+  if (production && realtimeProvider === "mock") {
+    problems.push("REALTIME_PROVIDER=mock is not allowed in production.");
+  }
+
   const config: AppConfig = {
     production,
     port: positiveInteger("PORT", 3000),
