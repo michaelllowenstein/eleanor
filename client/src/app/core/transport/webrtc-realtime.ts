@@ -75,6 +75,11 @@ export class WebRTCRealtimeTransport implements RealtimeTransport {
     }
  
     const answerSdp = await exchangeSdp(offer.sdp);
+    if (answerSdp.includes("s=eleanor-mock")) {
+      throw new Error(
+        "The API is in mock mode. Set REALTIME_PROVIDER=openai in api/.env and restart the API.",
+      );
+    }
  
     await peerConnection.setRemoteDescription({
       type: "answer",

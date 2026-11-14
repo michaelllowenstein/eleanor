@@ -6,6 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "build:install": "npm install --legacy-peer-deps",
+    "mock": "ng serve --configuration mock --port 4141",
+    "build:mock": "ng build --configuration mock",
     "local": "ng serve --configuration local --port 4141",
     "build:local": "ng build --configuration local",
     "watch": "ng build --watch --configuration local",

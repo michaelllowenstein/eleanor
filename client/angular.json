@@ -39,6 +39,11 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
+            "allowedCommonJsDependencies": [
+              "react",
+              "react-dom",
+              "react-is"
+            ],
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
@@ -75,7 +80,13 @@
               ],
               "outputHashing": "all"
             },
-            "development": {
+            "mock": {
+              "fileReplacements": [
+                {
+                  "replace": "src/envs/env.ts",
+                  "with": "src/envs/env.mock.ts"
+                }
+              ],
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
@@ -96,7 +107,11 @@
               "buildTarget": "eleanor:build:production"
             },
             "development": {
-              "buildTarget": "eleanor:build:development"
+              "buildTarget": "eleanor:build:mock",
+              "ssl": true,
+              "sslCert": "cert/local/localhost.crt",
+              "sslKey": "cert/local/localhost.decrypted.key",
+              "proxyConfig": "proxy.conf.json"
             },
             "local": {
               "buildTarget": "eleanor:build:local",
@@ -123,6 +138,7 @@
               }
             ],
             "styles": [
+              "src/tailwind.css",
               "src/styles.scss"
             ]
           }

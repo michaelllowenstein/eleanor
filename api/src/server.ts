@@ -14,7 +14,7 @@ import { CredentialService } from "./modules/credentials/service.js";
 import { createPasskeyRepository } from "./modules/passkey/repository.js";
 import { PasskeyService } from "./modules/passkey/service.js";
 import { createAssistantProfileRepository } from "./modules/profile/repository.js";
-import { createOpenAIRealtimeProviderFactory } from "./modules/realtime/provider.js";
+import { createMockRealtimeProviderFactory, createOpenAIRealtimeProviderFactory } from "./modules/realtime/provider.js";
 import { createUserRepository } from "./modules/users/repository.js";
 
 const config = loadConfig();

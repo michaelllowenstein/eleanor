@@ -1,4 +1,5 @@
 export interface AppConfig {
+  realtimeProvider: string;
   readonly production: boolean;
   readonly port: number;
   readonly logLevel: LogLevel;
@@ -125,6 +126,7 @@ export function loadConfig(env: Env = process.env): AppConfig {
     webauthnRpId,
     webauthnRpName: env.WEBAUTHN_RP_NAME?.trim() || "Eleanor",
     credentialEncryptionKey,
+    realtimeProvider: env.REALTIME_PROVIDER?.trim() || "not_found",
     realtimeModel: env.REALTIME_MODEL?.trim() || "gpt-realtime-2.1",
     sessionTtlSeconds: positiveInteger("SESSION_TTL_SECONDS", 28_800),
     stepUpTtlSeconds: positiveInteger("STEP_UP_TTL_SECONDS", 300),

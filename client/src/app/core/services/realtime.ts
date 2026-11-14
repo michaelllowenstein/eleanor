@@ -3,6 +3,7 @@ import {
   effect,
   inject,
   signal,
+  untracked
 } from "@angular/core";
 
 import { AudioLevelsService } from "./audio";
@@ -40,6 +41,7 @@ export class RealtimeVoiceService {
   private transport: RealtimeTransport | null = null;
   private microphoneStream: MediaStream | null = null;
   private remoteAudio: HTMLAudioElement | null = null;
+  private lastVoice = untracked(() => this.settings.settings().voice);
 
   constructor() {
     effect(() => {
@@ -58,6 +60,18 @@ export class RealtimeVoiceService {
       }
 
       this.applySettingsToSession();
+    });
+    effect(() => {
+      const voice = this.settings.settings().voice;
+      if (voice === this.lastVoice) return;
+      this.lastVoice = voice;
+
+      untracked(() => {
+        if (this.connected() && this.voiceLocked()) {
+          this.disconnect();
+          void this.connect();
+        }
+      });
     });
   }
 
