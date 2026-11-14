@@ -4,6 +4,9 @@
   "private": true,
   "workspaces": ["client", "api"],
   "scripts": {
+    "install:client": "cd client && npm run build:install",
+    "build:api": "cd api && npm run build",
+    "build:client": "cd client && npm run build:prod",
     "local": "concurrently -n api,client \"npm run local -w @eleanor/api\" \"npm run local -w @eleanor/client\"",
     "build": "npm run build -w @eleanor/api && npm run build -w @eleanor/client",
     "test": "npm run test -w @eleanor/api && npm run test -w @eleanor/client",
