@@ -5,9 +5,16 @@
     "moduleResolution": "nodenext",
     "strict": true,
     "outDir": "dist",
-    "rootDir": "./",
+    "rootDir": "src",
     "esModuleInterop": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts"
+  ],
+  "exclude": [
+    "src/**/*.spec.ts",
+    "src/**/*.integration.ts"
+  ]
 }

@@ -18,7 +18,7 @@
     },
     {
       "src": "/api/(.*)",
-      "dest": "https://REPLACE_WITH_RAILWAY_API_DOMAIN/api/$1",
+      "dest": "https://eleanorapi-production.up.railway.app/api/$1",
       "headers": {
         "x-vercel-enable-rewrite-caching": "0"
       },

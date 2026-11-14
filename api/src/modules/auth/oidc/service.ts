@@ -15,12 +15,22 @@ export interface OidcServiceConfig {
   readonly publicApiOrigin: string;
 
   readonly publicAppOrigin: string;
+
+  /**
+   * `prompt` sent when a fresh login is forced (first-passkey enrolment).
+   * "login" suits most providers; Google rejects it, so set "" there and
+   * rely on max_age=0, which Google honours.
+   */
+  readonly reauthPrompt?: string;
 }
 
 export interface CompletedAuthentication {
   readonly user: EleanorUser;
 
   readonly idTokenHint?: string;
+
+  /** The provider's email_verified claim (false when absent). */
+  readonly emailVerified: boolean;
 }
 
 /** The subset of OidcService the routes depend on (replaceable in tests). */
@@ -101,7 +111,12 @@ export class OidcService implements OidcClient {
       // Used when the server needs a *fresh* identity-provider login, e.g.
       // first-passkey enrolment after PASSKEY_ENROLLMENT_MAX_OIDC_AGE_SECONDS.
       ...(options.forceReauthentication
-        ? { prompt: "login", max_age: "0" }
+        ? {
+            max_age: "0",
+            ...((this.config.reauthPrompt ?? "login")
+              ? { prompt: this.config.reauthPrompt ?? "login" }
+              : {}),
+          }
         : {}),
     });
 
@@ -154,6 +169,8 @@ export class OidcService implements OidcClient {
       },
 
       idTokenHint: tokens.id_token,
+
+      emailVerified: claims.email_verified === true,
     };
   }
 
@@ -189,3 +206,4 @@ function sanitizeReturnTo(value: string): string {
 function optionalString(value: unknown): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
+

@@ -1,3 +1,4 @@
+# Local development dependencies. Run from api/:  docker compose up -d
 services:
   postgres:
     image: postgres:17
@@ -8,7 +9,7 @@ services:
       POSTGRES_USER: eleanor
       POSTGRES_PASSWORD: eleanor
     ports:
-      - "5434:5432"
+      - "5432:5432"
     volumes:
       - eleanor-postgres:/var/lib/postgresql/data
     healthcheck:
@@ -32,6 +33,8 @@ services:
       timeout: 5s
       retries: 10
 
+  # Mock OpenID Connect provider. Issuer: http://localhost:8080/eleanor
+  # The username typed on its login form becomes the user's `sub`.
   oidc:
     image: ghcr.io/navikt/mock-oauth2-server:2.1.10
     container_name: eleanor-oidc

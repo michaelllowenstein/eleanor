@@ -1,0 +1,28 @@
+# Keep the API build context small and free of secrets.
+**/node_modules
+**/dist
+**/out-tsc
+.git
+.github
+.angular
+**/.angular
+coverage
+playwright-report
+test-results
+docs
+*.log
+
+# The client is built by Vercel, not in this image; only its package.json is
+# needed so npm can validate the workspace lockfile.
+client/*
+!client/package.json
+
+# Secrets and key material
+**/.env
+**/.env.*
+!**/.env.example
+**/cert
+**/certs
+*.pem
+*.key
+*.crt

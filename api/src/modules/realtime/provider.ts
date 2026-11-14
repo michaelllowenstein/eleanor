@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import type {
   DecodedAssistantProfile,
 } from "../profile/metric.js";
+import { Logger } from "../../core/logger.js";
 
 export interface RealtimeCallRequest {
   readonly sdp: string;
@@ -33,7 +34,7 @@ export class RealtimeProviderError extends Error {
 }
 
 export function createOpenAIRealtimeProviderFactory(
-  model: string,
+model: string, logger: Logger,
 ): RealtimeProviderFactory {
   return (apiKey) => createOpenAIRealtimeProvider(apiKey, model);
 }
@@ -128,7 +129,7 @@ succeeded unless a trusted tool confirms it.
   };
 }
 
-export function createMockRealtimeProviderFactory(): RealtimeProviderFactory {
+export function createMockRealtimeProviderFactory(logger: Logger): RealtimeProviderFactory {
   return () => ({
     async createCall() {
       return ["v=0", "o=- 0 0 IN IP4 127.0.0.1", "s=eleanor-mock", "t=0 0", ""].join("\r\n");
