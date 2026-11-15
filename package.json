@@ -2,7 +2,10 @@
   "name": "eleanor",
   "version": "0.7.0",
   "private": true,
-  "workspaces": ["client", "api"],
+  "workspaces": [
+    "client",
+    "api"
+  ],
   "scripts": {
     "install:client": "cd client && npm run build:install",
     "build:api": "cd api && npm run build",
@@ -16,5 +19,8 @@
   "devDependencies": {
     "@playwright/test": "^1.55.0",
     "concurrently": "^9.2.0"
+  },
+  "allowScripts": {
+    "esbuild": true
   }
 }
